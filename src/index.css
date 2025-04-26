@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Define global styles or base overrides here */
+body {
+  @apply font-sans text-neutral-700 bg-neutral-100 antialiased; /* Use defined colors */
+}
+
+h1, h2, h3 {
+    @apply text-primary-dark font-semibold; /* Example heading style */
+}
+
+/* Style react-toastify */
+.Toastify__toast-container {
+    /* Customize if needed */
+}
+.Toastify__toast--success {
+    @apply bg-green-600 text-white;
+}
+ .Toastify__toast--error {
+    @apply bg-secondary-dark text-white;
+}
+ .Toastify__toast--info {
+    @apply bg-primary text-white;
+}
+/* Add other toast styles if needed */
