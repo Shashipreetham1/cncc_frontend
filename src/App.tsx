@@ -1,56 +1,73 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toastify
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
+import SearchPage from './pages/SearchPage';
+
+// Invoice Pages
 import InvoiceListPage from './pages/Invoices/InvoiceListPage';
-import InvoiceFormPage from './pages/Invoices/InvoiceFormPage'; // For Create/Edit
+import InvoiceFormPage from './pages/Invoices/InvoiceFormPage';
+
+// Purchase Order Pages
 import PurchaseOrderListPage from './pages/PurchaseOrders/PurchaseOrderListPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrders/PurchaseOrderFormPage';
+
+// Stock Register Pages
 import StockRegisterListPage from './pages/StockRegister/StockRegisterListPage';
 import StockRegisterFormPage from './pages/StockRegister/StockRegisterFormPage';
-import SearchPage from './pages/SearchPage';
-import ProfilePage from './pages/ProfilePage';
+
+// Admin Pages
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminEditRequestsPage from './pages/Admin/AdminEditRequestsPage';
-import NotFoundPage from './pages/NotFoundPage'; // Simple 404 component
 
-import { ProtectedRoute, AdminRoute } from './router'; // Import guards
+import { ProtectedRoute, AdminRoute } from './router'; // Import route guards
 import { useAuthStore } from './store/authStore';
-import { initializeSocket, disconnectSocket } from './lib/socket'; // Create this
+import { initializeSocket, disconnectSocket } from './lib/socket'; // Socket functions
 
 function App() {
-    const { user, hydrate } = useAuthStore(); // Get hydrate action
+    // Get user and hydrate function from the store
+    const user = useAuthStore((state) => state.user);
+    const hydrate = useAuthStore((state) => state.hydrate);
+    const isLoadingAuth = useAuthStore((state) => state.isLoading); // Track loading state
+
 
     useEffect(() => {
-       // Finish hydration check after component mounts
+       // Indicate hydration check is complete *after* the component initially mounts.
+       // Zustand persist might finish loading before this, but this signals app is ready.
+        console.log("App mounted, calling hydrate.");
        hydrate();
     }, [hydrate]);
 
+    // Effect to manage Socket.IO connection based on user state
+    useEffect(() => {
+        // Only initialize socket if authentication check is done and user is logged in
+        if (!isLoadingAuth && user) {
+             console.log("User authenticated, initializing socket...");
+            initializeSocket(user.id, user.role);
+        } else if (!isLoadingAuth && !user) {
+            console.log("User not authenticated, ensuring socket is disconnected...");
+            disconnectSocket(); // Ensure disconnection on logout or if initially not logged in
+        }
 
-   useEffect(() => {
-       // Initialize Socket.IO connection when user logs in
-       if (user) {
-            initializeSocket(user.id, user.role); // Pass user info to socket logic
-       } else {
-            disconnectSocket(); // Disconnect if user logs out
-       }
-
-       // Cleanup on component unmount or user change
+        // Cleanup function: disconnect socket when component unmounts or user logs out
         return () => {
+             console.log("App cleanup: Disconnecting socket.");
             disconnectSocket();
         };
-   }, [user]); // Re-run when user state changes
+    }, [user, isLoadingAuth]); // Re-run when user state or loading status changes
 
 
   return (
     <BrowserRouter>
-       {/* Toast container for notifications */}
+      {/* Toast container must be rendered within the app */}
       <ToastContainer
-            position="top-right"
-            autoClose={5000}
+            position="bottom-right"
+            autoClose={4000}
             hideProgressBar={false}
             newestOnTop={false}
             closeOnClick
@@ -58,47 +75,47 @@ function App() {
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="colored" // Use colored themes defined in index.css
+            theme="colored"
+            limit={5} // Limit number of toasts shown
         />
       <Routes>
-        {/* Public Route */}
+        {/* Public Route: Login Page */}
         <Route path="/login" element={<LoginPage />} />
 
-         {/* Protected Routes (require login) */}
+         {/* Protected Routes (Accessed via ProtectedRoute guard which includes Layout) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/search" element={<SearchPage />} />
 
-          {/* Invoice Routes */}
+          {/* --- Feature Routes --- */}
+          {/* Invoices */}
           <Route path="/invoices" element={<InvoiceListPage />} />
-          <Route path="/invoices/new" element={<InvoiceFormPage />} />
-          <Route path="/invoices/edit/:id" element={<InvoiceFormPage />} />
+          <Route path="/invoices/new" element={<InvoiceFormPage mode="create" />} />
+          <Route path="/invoices/edit/:id" element={<InvoiceFormPage mode="edit" />} />
 
-           {/* Purchase Order Routes */}
+          {/* Purchase Orders */}
           <Route path="/purchase-orders" element={<PurchaseOrderListPage />} />
-          <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
-          <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderFormPage />} />
+          <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage mode="create" />} />
+          <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderFormPage mode="edit" />} />
 
-          {/* Stock Register Routes */}
-           <Route path="/stock-register" element={<StockRegisterListPage />} />
-          <Route path="/stock-register/new" element={<StockRegisterFormPage />} />
-          <Route path="/stock-register/edit/:id" element={<StockRegisterFormPage />} />
+          {/* Stock Register */}
+          <Route path="/stock-register" element={<StockRegisterListPage />} />
+          <Route path="/stock-register/new" element={<StockRegisterFormPage mode="create" />} />
+          <Route path="/stock-register/edit/:id" element={<StockRegisterFormPage mode="edit" />} />
 
-           {/* Search Routes */}
-           <Route path="/search" element={<SearchPage />} />
+          {/* Redirect base protected path to dashboard */}
+           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
 
-         {/* Admin Only Routes */}
+         {/* Admin Only Routes (Accessed via AdminRoute guard which includes Layout) */}
         <Route element={<AdminRoute />}>
              <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/edit-requests" element={<AdminEditRequestsPage />} />
-             {/* Add other admin-specific pages here */}
+            {/* Add other admin routes here */}
         </Route>
 
-         {/* Redirect root path */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-
-         {/* Catch-all 404 Route */}
+         {/* Catch-all 404 Route - Placed last */}
          <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
