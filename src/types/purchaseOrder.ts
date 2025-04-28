@@ -1,65 +1,60 @@
-/**
- * src/types/purchaseOrder.ts
- * Defines types related to Purchase Orders and Items.
- */
+// src/types/purchaseOrder.ts
 import { UserInfo } from './shared';
 
-// Interface for Item data (matches Prisma model)
+// Represents a single Item linked to a Purchase Order
 export interface Item {
   id: string;
   description: string;
   quantity: number;
   rate: number;
-  purchaseOrderId: string; // Foreign key back to PurchaseOrder
-  createdAt: string;       // ISO Date string
-  updatedAt: string;       // ISO Date string
+  purchaseOrderId: string;
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
 }
 
-// Interface for Item data within a form context
+// Represents Item data within a form
 export interface ItemFormData {
-   id?: string; // Optional: Only for updates within form
+   id?: string;
    description: string;
    quantity: number | string;
    rate: number | string;
 }
 
-// Interface for Purchase Order data (matches Prisma model + relations)
+// Represents a full Purchase Order record from the API
 export interface PurchaseOrder {
-  fullFileUrl: string;
   id: string;
-  orderDate: string;         // ISO Date string
+  orderDate: string; // ISO String
   fromAddress: string;
   vendorName: string;
   contactNumber?: string | null;
   gstNumber?: string | null;
-  purchaseOrderNumber: string; // Should be unique based on schema
+  purchaseOrderNumber: string;
   totalAmount: number;
-  purchaseOrderFileUrl?: string | null; // Relative URL path
+  purchaseOrderFileUrl?: string | null; // Relative path
   allowEditing: boolean;
-  editableUntil?: string | null; // ISO Date string or null
-  createdAt: string;         // ISO Date string
-  updatedAt: string;         // ISO Date string
+  editableUntil?: string | null; // ISO String or null
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
   userId: string;
 
   // Included Relations
-  items: Item[];             // Array of associated Item objects
-  user: UserInfo;            // Info about the creator user
+  items: Item[];
+  user: UserInfo;
+
+  // Client-side computed helper
+  fullFileUrl?: string | null;
 }
 
-/**
- * Interface for the Purchase Order form data.
- */
+// Data structure for the Purchase Order Form
 export interface PurchaseOrderFormData {
-  id: string; // User-provided
-  orderDate: string; // Use string 'YYYY-MM-DD' or similar
+  id: string;
+  orderDate: string; // 'YYYY-MM-DD'
   fromAddress: string;
   vendorName: string;
-  contactNumber: string | null | undefined;
-  gstNumber: string | null | undefined;
+  contactNumber?: string | null;
+  gstNumber?: string | null;
   purchaseOrderNumber: string;
   totalAmount: number | string;
-  // Use ItemFormData for nested items in the form array
   items: ItemFormData[];
-  // File input field
-  purchaseOrderFile?: FileList | null;
+  purchaseOrderFile?: FileList | null; // File input
 }

@@ -1,54 +1,56 @@
-/**
- * src/types/search.ts
- * Defines types related to Search functionality, including Saved Searches.
- */
-import { UserInfo } from './shared'; // Only if user info included in SavedSearch response
+// src/types/search.ts
 
-// Define Document Types matching backend enum
+// Matches backend Enum
 export type DocumentType = 'INVOICE' | 'PURCHASE_ORDER' | 'STOCK_REGISTER';
 
-// Interface for Saved Search data (matches Prisma model)
+// Represents a Saved Search record from the API
 export interface SavedSearch {
   id: string;
   name: string;
-  documentType: DocumentType; // The specific type this search applies to
-  // Using Record<string, any> for flexibility, could use a more specific type
-  // if search parameter structure is strictly defined. `unknown` is safer.
+  documentType: DocumentType;
+  // Use Record<string, any> for flexible criteria structure
+  // `unknown` forces type checks before use
   searchParams: Record<string, any> | unknown;
-  createdAt: string;         // ISO Date string
-  updatedAt: string;         // ISO Date string
-  userId: string;            // Foreign key
-
-  // user?: UserInfo; // Optional: Only if backend includes user relation
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
+  userId: string; // Belongs to specific user
 }
 
-/**
- * Interface for the form data when creating or updating a Saved Search.
- */
+// Data structure for the Save Search form
 export interface SavedSearchFormData {
     name: string;
+    // These are often pre-filled based on current search context in the modal
     documentType: DocumentType;
-    searchParams: Record<string, any> | unknown; // The criteria object
+    searchParams: Record<string, any> | unknown;
 }
 
 /**
- * Structure for basic search results from the backend searchDocuments endpoint.
- * T could be Invoice, PurchaseOrder, StockRegister with an added documentType.
+ * Generic structure for a document returned by basic search.
+ * Will be one of Invoice, PurchaseOrder, or StockRegister + documentType indicator.
  */
- export type GenericDocument = Record<string, any> & { documentType: string };
+export type GenericDocument = Record<string, any> & {
+    id: string; // Ensure ID exists
+    documentType: string; // 'invoice', 'purchaseOrder', or 'stockRegister'
+    createdAt: string; // Ensure createdAt for sorting if needed
+    // Add specific fields expected in search result cards/rows
+    invoiceFileUrl?: string | null;
+    purchaseOrderFileUrl?: string | null;
+    photoUrl?: string | null;
+    fullFileUrl?: string | null; // Client-side added
+    companyName?: string;
+    vendorName?: string;
+    articleName?: string;
+    purchaseOrderNumber?: string;
+    // etc.
+};
 
- export interface BasicSearchResponse {
-     searchQuery: string;
-     searchType: string;
-     results: GenericDocument[];
-     totalPages: number;
-     currentPage: number;
-     limit: number;
-     totalResults: number;
- }
-
- // Interface for advanced search results can extend PaginatedResponse
- // import { PaginatedResponse } from './api';
- // export interface AdvancedSearchResponse<T> extends PaginatedResponse<T> {
- //     searchCriteria?: Record<string, any>;
- // }
+// Structure returned by the basic search API endpoint
+export interface BasicSearchResponse {
+    searchQuery: string;
+    searchType: string;
+    results: GenericDocument[];
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+    totalResults: number;
+}

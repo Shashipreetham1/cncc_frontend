@@ -1,76 +1,66 @@
-/**
- * src/types/invoice.ts
- * Defines types related to Invoices and Products.
- */
-import { UserInfo } from './shared'; // Import shared UserInfo
+// src/types/invoice.ts
+import { UserInfo } from './shared';
 
-// Interface for Product data (matches Prisma model)
+// Represents a single Product item linked to an Invoice
 export interface Product {
-  id: string;                 // Primary Key from DB (always present on fetched data)
+  id: string;
   productName: string;
   serialNumber?: string | null;
   warrantyYears: number;
   quantity: number;
   price: number;
-  invoiceId: string;           // Foreign key back to Invoice
-  createdAt: string;           // ISO Date string
-  updatedAt: string;           // ISO Date string
+  invoiceId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Interface for Product data within a form context (ID optional for new products)
+// Represents Product data structure within a form (ID optional)
 export interface ProductFormData {
-  id?: string; // Optional: Only present if updating an existing product within the form
+  id?: string;
   productName: string;
   serialNumber?: string | null;
-  warrantyYears?: number | string; // Allow string for input field
-  quantity: number | string;      // Allow string for input field
-  price: number | string;         // Allow string for input field
+  warrantyYears?: number | string; // Allow string from input
+  quantity: number | string;
+  price: number | string;
 }
 
-// Interface for Invoice data (matches Prisma model + relations)
+// Represents a full Invoice record from the API
 export interface Invoice {
-  fullFileUrl: string;
-  id: string;                 // Primary Key (User-provided on creation)
-  purchaseDate: string;       // ISO Date string
+  id: string;
+  purchaseDate: string; // ISO String
   companyName: string;
   orderOrSerialNumber?: string | null;
   vendorName: string;
   contactNumber?: string | null;
   address: string;
-  invoiceFileUrl?: string | null; // Relative URL path from backend
+  invoiceFileUrl?: string | null; // Relative path
   additionalDetails?: string | null;
-  allowEditing: boolean;          // Backend permission flag
-  editableUntil?: string | null;   // ISO Date string or null
+  allowEditing: boolean;
+  editableUntil?: string | null; // ISO String or null
   totalAmount: number;
-  createdAt: string;            // ISO Date string
-  updatedAt: string;            // ISO Date string
-  userId: string;               // Foreign key to User
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
+  userId: string;
 
   // Included Relations
-  products: Product[];         // Array of associated Product objects
-  user: UserInfo;              // Information about the creator user
+  products: Product[];
+  user: UserInfo;
 
-  // Optional Frontend Computed Fields (add in frontend logic if needed)
-  // fullFileUrl?: string | null;
-  // displayFilename?: string | null;
+  // Client-side computed helper field
+  fullFileUrl?: string | null;
 }
 
-/**
- * Interface defining the data structure for the Invoice form,
- * suitable for React Hook Form. Matches backend requirements for create/update.
- */
+// Data structure for the Invoice Form using React Hook Form
 export interface InvoiceFormData {
-  id: string; // User MUST provide ID on creation/update
-  purchaseDate: string; // Use string 'YYYY-MM-DD' or similar compatible with <input type="date">
+  id: string;
+  purchaseDate: string; // 'YYYY-MM-DD'
   companyName: string;
-  orderOrSerialNumber: string | null | undefined;
+  orderOrSerialNumber?: string | null;
   vendorName: string;
-  contactNumber: string | null | undefined;
+  contactNumber?: string | null;
   address: string;
-  additionalDetails: string | null | undefined;
-  totalAmount: number | string; // Use string during input, parse before sending
-  // Use ProductFormData for nested items in the form array
+  additionalDetails?: string | null;
+  totalAmount: number | string;
   products: ProductFormData[];
-  // File input field - note: FileList is type for <input type="file"> value
-  invoiceFile?: FileList | null;
+  invoiceFile?: FileList | null; // File input
 }

@@ -1,40 +1,39 @@
-/**
- * src/types/api.ts
- * Defines common structures for API responses, especially pagination.
- */
+// src/types/api.ts
 
-/**
- * Structure for paginated API list responses.
- * Contains the data for the current page and pagination metadata.
- * T represents the type of the items in the results array (e.g., Invoice, User).
- */
+// Generic structure for paginated responses from the backend
 export interface PaginatedResponse<T> {
-    totalRequests: number;
-    results: T[];       // The array of items for the current page
-    totalPages: number;  // Total number of pages available
-    currentPage: number; // The current page number that was returned
-    limit: number;       // The number of items requested per page (from request)
-    totalResults: number;// Total number of items matching the query criteria
-    // Optional: Include search criteria echo if needed
-    searchQuery?: string;
-    searchType?: string;
-    searchCriteria?: Record<string, any>;
-  }
-  
-  /**
-   * Standard API error response structure (customize as needed).
-   * Axios errors often have error.response.data matching this.
-   */
-  export interface ApiErrorResponse {
-    message: string;          // User-friendly error message
-    error?: any;              // More technical error details (optional, esp. in dev)
-    errorDetails?: {          // More structured details if provided by backend
-        name?: string;
-        code?: string;
-        message?: string;
-    };
-    // Add specific validation error structure if your backend provides it
-    // validationErrors?: { [key: string]: string[] };
-  }
-  
-  // You can add other common API-related types here if necessary
+  results: T[];          // Data for the current page
+  totalPages: number;     // Total pages available
+  currentPage: number;    // The returned page number
+  limit: number;          // Items per page requested
+  totalResults: number;   // Total matching items across all pages
+
+  // Optional metadata often included
+  users?: T[];             // Specific key used by userController might differ
+  invoices?: T[];          // Key might differ based on controller response
+  purchaseOrders?: T[];    // Key might differ based on controller response
+  stockRegisters?: T[];    // Key might differ based on controller response
+  editRequests?: T[];      // Key might differ based on controller response
+  savedSearches?: T[];     // Key might differ based on controller response
+  count?: number;          // Alternative count field from backend
+
+  // Optional search echo
+  searchQuery?: string;
+  searchType?: string;
+  searchCriteria?: Record<string, any>;
+}
+
+// Common API Error structure expected from backend or Axios error response
+export interface ApiErrorResponse {
+  message: string;
+  error?: any;
+  errorDetails?: { name?: string; code?: string; message?: string; };
+}
+
+// Used for the ID validation endpoint
+export interface ValidateIdResponse {
+    providedId: string;
+    documentType: string;
+    isUnique: boolean;
+    message: string;
+}

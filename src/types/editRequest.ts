@@ -1,66 +1,51 @@
-/**
- * src/types/editRequest.ts
- * Defines types related to Edit Requests.
- */
+// src/types/editRequest.ts
 import { UserInfo } from './shared';
-import { Invoice } from './invoice';         // Import base types if showing full doc
-import { PurchaseOrder } from './purchaseOrder';
-import { StockRegister } from './stockRegister';
 
-// Define Edit Request Status matching backend enum
+// Matches backend Enum
 export type EditRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
-// Base interface for linked document snippet (for context in lists)
+// Minimal info about the linked document shown in lists/notifications
 interface LinkedDocumentInfo {
     id: string;
-    // Include a distinguishing field
-    companyName?: string; // For Invoice
+    companyName?: string;          // For Invoice
     purchaseOrderNumber?: string; // For PO
-    articleName?: string; // For StockRegister
+    articleName?: string;          // For Stock Register
 }
 
-// Interface for Edit Request data (matches Prisma model + relations)
+// Represents an Edit Request record from the API
 export interface EditRequest {
-  documentId: any;
-  documentTypeLabel: any;
   id: string;
   status: EditRequestStatus;
   requestMessage?: string | null;
   responseMessage?: string | null;
-  createdAt: string;            // ISO Date string
-  updatedAt: string;            // ISO Date string
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
 
-  // IDs linking to the document (only one will be present)
+  // Foreign keys (only one will be non-null)
   invoiceId?: string | null;
   purchaseOrderId?: string | null;
   stockRegisterId?: string | null;
 
-  // Included Relations (UserInfo for brevity, or full types if needed)
-  requestedBy: UserInfo;         // User who made the request
-  adminUser?: UserInfo | null;   // Admin who processed it (optional)
+  // Relations
+  requestedBy: UserInfo;
+  adminUser?: UserInfo | null; // Admin who processed it
 
-  // Include basic info of the linked document for display context
+  // Linked document summary (add based on backend response include clause)
   invoice?: LinkedDocumentInfo | null;
   purchaseOrder?: LinkedDocumentInfo | null;
   stockRegister?: LinkedDocumentInfo | null;
 
-  // Or include full document if needed on specific views
-  // invoice?: Invoice | null;
-  // purchaseOrder?: PurchaseOrder | null;
-  // stockRegister?: StockRegister | null;
+  // Client-side helpers added by fetch logic
+  documentTypeLabel?: string;
+  documentId?: string | null;
 }
 
-/**
- * Interface for the form data when a user SUBMITS an edit request.
- */
+// Form data when user *submits* a request
 export interface EditRequestFormData {
-  requestMessage: string; // The reason/message for the request
-  // documentId and documentType are typically passed via route params or context
+  requestMessage: string;
 }
 
-/**
- * Interface for the form data when an ADMIN APPROVES/REJECTS an edit request.
- */
+// Form data when admin *responds* to a request
 export interface EditRequestAdminResponseFormData {
-    responseMessage: string; // Justification for approval or rejection
+    responseMessage: string; // Reason required for both approve/reject potentially
 }
